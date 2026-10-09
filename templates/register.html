@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | Aswani Hospital</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 25px 15px;
+
+            font-family: Arial, sans-serif;
+
+            background: linear-gradient(
+                135deg,
+                #eef7ff,
+                #dceeff
+            );
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 420px;
+            max-width: 100%;
+        }
+
+        /* Hospital Header */
+
+        .hospital-name {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .hospital-name h1 {
+            margin: 0;
+            color: #0d5ea8;
+            font-size: 32px;
+        }
+
+        .hospital-name p {
+            margin-top: 7px;
+            color: #6b7c93;
+            font-size: 14px;
+        }
+
+        /* Register Card */
+
+        .card {
+            background: white;
+            padding: 38px;
+            border-radius: 16px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 70, 130, 0.12);
+        }
+
+        .card h2 {
+            text-align: center;
+            color: #123f68;
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7a8a9a;
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+
+        /* Input Fields */
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 7px;
+            color: #34516b;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 15px;
+
+            border: 1px solid #d5e0ea;
+            border-radius: 8px;
+
+            outline: none;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: #1479c9;
+
+            box-shadow:
+                0 0 0 3px rgba(20, 121, 201, 0.08);
+        }
+
+        /* Messages */
+
+        .messages {
+            margin-bottom: 18px;
+        }
+
+        .message {
+            padding: 11px 12px;
+            border-radius: 7px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .message.error {
+            background: #fff0f0;
+            color: #c0392b;
+        }
+
+        .message.success {
+            background: #eafaf1;
+            color: #218838;
+        }
+
+        /* Register Button */
+
+        .register-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 4px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: #1268ad;
+            color: white;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .register-btn:hover {
+            background: #0d5792;
+        }
+
+        /* Login Link */
+
+        .login-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .login-text a {
+            color: #1268ad;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsive */
+
+        @media (max-width: 500px) {
+            .container {
+                width: 100%;
+            }
+
+            .card {
+                padding: 28px 22px;
+            }
+
+            .hospital-name h1 {
+                font-size: 27px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- Hospital Header -->
+
+        <div class="hospital-name">
+            <h1>Aswani Hospital</h1>
+            <p>Better Health • Brighter Tomorrow</p>
+        </div>
+
+        <!-- Register Card -->
+
+        <div class="card">
+
+            <h2>Create Account</h2>
+
+            <div class="subtitle">
+                Register to access your account
+            </div>
+
+            <!-- Django Messages -->
+
+            {% if messages %}
+                <div class="messages">
+
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% endif %}
+
+            <!-- Registration Form -->
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="input-group">
+                    <label for="email">Email Address</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email address"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="confirm_password">
+                        Confirm Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirm_password"
+                        name="confirm_password"
+                        placeholder="Re-enter your password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <button
+                    type="submit"
+                    class="register-btn"
+                >
+                    Create Account
+                </button>
+
+            </form>
+
+            <!-- Login Link -->
+
+            <div class="login-text">
+                Already have an account?
+
+                <a href="{% url 'login' %}">
+                    Login
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

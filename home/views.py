@@ -1,22 +1,37 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 from .forms import bookingform, PrescriptionForm
-from .models import Department, Doctor, Prescription, booking as Booking
+from .models import Department, Doctor, booking as Booking
+
 from prescription.models import Prescription
 from prescription.gemini_service import patient_assistant
 
 
+# =========================================================
+# HOME
+# =========================================================
 
 def index(request):
     return render(request, 'index.html')
 
 
+# =========================================================
+# ABOUT
+# =========================================================
+
 def about(request):
     return render(request, 'about.html')
 
 
+# =========================================================
+# BOOKING
+# =========================================================
+
+@login_required(login_url='login')
 def booking(request):
 
     if request.method == 'POST':
@@ -33,7 +48,11 @@ def booking(request):
 
     else:
 
-        form = bookingform()
+        form = bookingform(
+            initial={
+                'p_email': request.user.email
+            }
+        )
 
     return render(
         request,
@@ -43,6 +62,10 @@ def booking(request):
         }
     )
 
+
+# =========================================================
+# DOCTORS
+# =========================================================
 
 def doctors(request):
 
@@ -57,6 +80,10 @@ def doctors(request):
     )
 
 
+# =========================================================
+# CONTACT
+# =========================================================
+
 def contact(request):
 
     return render(
@@ -64,6 +91,10 @@ def contact(request):
         'contact.html'
     )
 
+
+# =========================================================
+# DEPARTMENT
+# =========================================================
 
 def department(request):
 
@@ -78,67 +109,60 @@ def department(request):
     )
 
 
-@login_required
+# =========================================================
+# PATIENT DASHBOARD
+# =========================================================
+
+@login_required(login_url='login')
 def patient_dashboard(request):
 
-    prescriptions = Prescription.objects.all()
+    patient_email = request.user.email
 
-    token_no = request.session.get('token_no')
-    patient_booking = Booking.objects.filter(
-            p_email=request.user.email
-        ).select_related(
+    # Get latest appointment of logged-in patient
+    patient_booking = (
+        Booking.objects
+        .filter(
+            p_email=patient_email
+        )
+        .select_related(
             'doc_name',
             'doc_name__dep_name'
-        ).order_by(
-            '-booking_date',
-            '-booked_on'
-        ).first()
-
-    if request.method == 'POST':
-
-        form = PrescriptionForm(
-            request.POST,
-            request.FILES
         )
+        .order_by(
+            '-booked_on'
+        )
+        .first()
+    )
 
-        if form.is_valid():
-
-            form.save()
-
-            return redirect(
-                'patient_dashboard'
-            )
-
-    else:
-
-        form = PrescriptionForm()
-
-    context = {
-
-        'form': form,
-
-        'prescriptions': prescriptions,
-
-        'token_no': token_no,
-
-        'patient_booking': patient_booking
-
-    }
+    # Get patient's prescriptions
+    prescriptions = Prescription.objects.filter(
+        patient_name=request.user.username
+    ).order_by(
+        '-id'
+    )
 
     return render(
         request,
         'patient_dashboard.html',
-        context
+        {
+            'patient_booking': patient_booking,
+            'prescriptions': prescriptions,
+        }
     )
 
 
+# =========================================================
+# PATIENT LOGIN
+# =========================================================
 def patient_login(request):
 
     if request.method == 'POST':
 
         username = request.POST.get('username')
-
         password = request.POST.get('password')
+
+        print("USERNAME:", username)
+        print("PASSWORD RECEIVED:", bool(password))
 
         user = authenticate(
             request,
@@ -146,21 +170,28 @@ def patient_login(request):
             password=password
         )
 
+        print("AUTH USER:", user)
+
         if user is not None:
 
-            login(
-                request,
-                user
-            )
+            login(request, user)
 
-            return redirect(
-                'patient_dashboard'
-            )
+            return redirect('patient_dashboard')
+
+        messages.error(
+            request,
+            'Invalid email or password.'
+        )
 
     return render(
         request,
         'login.html'
     )
+
+# =========================================================
+# DOCTOR LOGIN
+# =========================================================
+
 def doctor_login(request):
 
     if request.method == 'POST':
@@ -182,24 +213,51 @@ def doctor_login(request):
 
             if doctor:
 
-                login(request, user)
+                login(
+                    request,
+                    user
+                )
 
                 return redirect(
                     'doctor_dashboard'
                 )
+
+            messages.error(
+                request,
+                'This account is not registered as a doctor.'
+            )
+
+        else:
+
+            messages.error(
+                request,
+                'Invalid username or password.'
+            )
 
     return render(
         request,
         'doctor_login.html'
     )
 
-@login_required
+
+# =========================================================
+# PROFILE
+# =========================================================
+
+@login_required(login_url='login')
 def profile(request):
 
     return render(
         request,
         'profile.html'
     )
+
+
+# =========================================================
+# AI PATIENT ASSISTANT
+# =========================================================
+
+@login_required(login_url='login')
 def ai_patient_assistant(request):
 
     response = None
@@ -232,28 +290,24 @@ def ai_patient_assistant(request):
             'symptoms': symptoms,
         }
     )
-@login_required
+
+
+# =========================================================
+# DOCTOR DASHBOARD
+# =========================================================
+
+@login_required(login_url='doctor_login')
 def doctor_dashboard(request):
 
     doctor = Doctor.objects.filter(
         user=request.user
     ).first()
 
-    if doctor is None:
-        return render(
-            request,
-            'doctor_dashboard.html',
-            {
-                'doctor': None,
-                'appointments': []
-            }
-        )
-
     appointments = Booking.objects.filter(
         doc_name=doctor
     ).order_by(
-        'booking_date',
-        'booked_on'
+        '-booking_date',
+        '-booked_on'
     )
 
     return render(
@@ -261,6 +315,130 @@ def doctor_dashboard(request):
         'doctor_dashboard.html',
         {
             'doctor': doctor,
-            'appointments': appointments
+            'appointments': appointments,
         }
+    )
+
+
+# =========================================================
+# UPDATE APPOINTMENT STATUS
+# =========================================================
+
+@login_required(login_url='doctor_login')
+def update_appointment_status(
+    request,
+    booking_id,
+    status
+):
+
+    doctor = Doctor.objects.filter(
+        user=request.user
+    ).first()
+
+    appointment = Booking.objects.get(
+        id=booking_id,
+        doc_name=doctor
+    )
+
+    allowed_statuses = [
+        'Pending',
+        'Confirmed',
+        'Completed',
+        'Cancelled'
+    ]
+
+    if status in allowed_statuses:
+
+        appointment.status = status
+
+        appointment.save()
+
+    return redirect(
+        'doctor_dashboard'
+    )
+
+
+# =========================================================
+# PATIENT REGISTRATION
+# =========================================================
+def patient_login(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(
+            request,
+            username=email,
+            password=password
+        )
+
+        if user is not None:
+
+            login(request, user)
+
+            next_url = request.POST.get('next')
+
+            if next_url:
+                return redirect(next_url)
+
+            return redirect('patient_dashboard')
+
+        messages.error(
+            request,
+            'Invalid email or password.'
+        )
+
+    return render(
+        request,
+        'login.html'
+    )
+def register(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            messages.error(
+                request,
+                'Passwords do not match.'
+            )
+            return render(
+                request,
+                'register.html'
+            )
+
+        if User.objects.filter(
+            username=email
+        ).exists():
+
+            messages.error(
+                request,
+                'An account with this email already exists.'
+            )
+            return render(
+                request,
+                'register.html'
+            )
+
+        User.objects.create_user(
+            username=email,
+            email=email,
+            password=password
+        )
+
+        messages.success(
+            request,
+            'Registration successful. Please login.'
+        )
+
+        return redirect('login')
+
+    return render(
+        request,
+        'register.html'
     )

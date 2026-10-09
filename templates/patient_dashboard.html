@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>NovaCare | Patient Dashboard</title>
+    <title>Aswani Patient Dashboard</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -907,7 +907,11 @@
                         </span>
 
                         <strong>
-                            {{ token_no|default:"--" }}
+                            {% if patient_booking %}
+                                #{{ patient_booking.token_no }}
+                            {% else %}
+                                --
+                            {% endif %}
                         </strong>
 
                     </div>
@@ -1083,12 +1087,24 @@
 
                             </div>
 
+                            <div class="detail">
+
+                                <span>
+                                    STATUS
+                                </span>
+
+                                <strong>
+                                    {{ patient_booking.status|default:"Pending" }}
+                                </strong>
+
+                            </div>
+
                         </div>
 
 
 
                         <span class="status">
-                            ● Appointment Booked
+                            ● {{ patient_booking.status|default:"Pending" }}
                         </span>
 
 
@@ -1262,6 +1278,13 @@
                                 </strong>
                             </div>
 
+                            <div class="detail">
+                                <span>STATUS</span>
+                                <strong>
+                                    {{ patient_booking.status|default:"Pending" }}
+                                </strong>
+                            </div>
+
                         </div>
 
                     </div>
@@ -1432,7 +1455,7 @@
                 </div>
 
 
-                <a href="#" class="ai-button">
+                <a href="{% url 'ai_patient_assistant' %}" class="ai-button">
 
                     💬 Open AI Assistant
 

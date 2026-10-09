@@ -51,6 +51,16 @@ class booking(models.Model):
     booked_on = models.DateTimeField(
         auto_now_add=True
     )
+    status = models.CharField(
+    max_length=20,
+    choices=[
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ],
+    default='Pending'
+)
 
     def save(self, *args, **kwargs):
 

@@ -7,6 +7,11 @@ from .models import Prescription, PrescriptionMedicine
 from home.models import Doctor, booking
 
 
+# =========================================================
+# CREATE PRESCRIPTION
+# Doctor writes prescription
+# =========================================================
+
 @login_required
 def create_prescription(request, appointment_id):
 
@@ -36,18 +41,21 @@ def create_prescription(request, appointment_id):
             and medicine_formset.is_valid()
         ):
 
-            # Save prescription
+            # Create prescription
             prescription = prescription_form.save(
                 commit=False
             )
 
-            # Connect prescription to patient appointment
+            # Connect prescription to appointment
             prescription.patient = appointment
 
+            # Store patient name
             prescription.patient_name = appointment.p_name
 
-            prescription.save()
+            # New prescription starts as Pending
+            prescription.status = 'Pending'
 
+            prescription.save()
 
             # Save medicines
             medicines = medicine_formset.save(
@@ -56,16 +64,16 @@ def create_prescription(request, appointment_id):
 
             for medicine in medicines:
 
-                # Skip completely empty medicine rows
-                if not medicine.medicine_name:
+                # Ignore empty rows
+                if not medicine.medicine_name.strip():
                     continue
 
                 medicine.prescription = prescription
 
                 medicine.save()
 
-
-            # Go back to doctor dashboard
+            # After doctor saves,
+            # send prescription to pharmacist
             return redirect(
                 'doctor_dashboard'
             )
@@ -78,33 +86,134 @@ def create_prescription(request, appointment_id):
             queryset=PrescriptionMedicine.objects.none()
         )
 
-
     return render(
         request,
         'create_prescription.html',
         {
             'prescription_form': prescription_form,
-
             'medicine_formset': medicine_formset,
-
             'appointment': appointment,
-
             'doctor': doctor,
         }
     )
 
 
+# =========================================================
+# PHARMACIST DASHBOARD
+# =========================================================
+
 @login_required
-def view_prescription(request, prescription_id):
+def pharmacist_dashboard(request):
+
+    prescriptions = (
+        Prescription.objects
+        .select_related(
+            'patient',
+            'patient__doc_name',
+            'patient__doc_name__dep_name'
+        )
+        .prefetch_related(
+            'medicines'
+        )
+        .order_by(
+            '-created_at'
+        )
+    )
+
+    pending_count = prescriptions.filter(
+        status='Pending'
+    ).count()
+
+    ready_count = prescriptions.filter(
+        status='Ready'
+    ).count()
+
+    dispatch_count = prescriptions.filter(
+        status='Dispatch'
+    ).count()
+
+    return render(
+        request,
+        'pharmacist_dashboard.html',
+        {
+            'prescriptions': prescriptions,
+            'pending_count': pending_count,
+            'ready_count': ready_count,
+            'dispatch_count': dispatch_count,
+        }
+    )
+
+
+# =========================================================
+# UPDATE PRESCRIPTION STATUS
+# Pharmacist
+# =========================================================
+
+@login_required
+def update_prescription_status(
+    request,
+    prescription_id,
+    new_status
+):
 
     prescription = get_object_or_404(
         Prescription,
         id=prescription_id
     )
 
-    doctor = get_object_or_404(
-        Doctor,
-        user=request.user
+    allowed_statuses = [
+        'Pending',
+        'Ready',
+        'Dispatch'
+    ]
+
+    if new_status in allowed_statuses:
+
+        prescription.status = new_status
+
+        prescription.save()
+
+    return redirect(
+        'pharmacist_dashboard'
+    )
+
+
+# =========================================================
+# DELETE PRESCRIPTION
+# =========================================================
+
+@login_required
+def delete_prescription(
+    request,
+    prescription_id
+):
+
+    prescription = get_object_or_404(
+        Prescription,
+        id=prescription_id
+    )
+
+    prescription.delete()
+
+    return redirect(
+        'pharmacist_dashboard'
+    )
+
+
+# =========================================================
+# VIEW PRESCRIPTION
+# Doctor / Pharmacist / Patient
+# =========================================================
+
+@login_required
+def view_prescription(
+    request,
+    prescription_id
+):
+
+    prescription = get_object_or_404(
+        Prescription,
+        id=prescription_id
     )
 
     return render(
@@ -112,9 +221,42 @@ def view_prescription(request, prescription_id):
         'view_prescription.html',
         {
             'prescription': prescription,
-
             'appointment': prescription.patient,
+        }
+    )
 
-            'doctor': doctor,
+
+# =========================================================
+# PATIENT PRESCRIPTION
+# =========================================================
+
+@login_required
+def patient_prescription(
+    request,
+    prescription_id
+):
+
+    prescription = get_object_or_404(
+        Prescription,
+        id=prescription_id
+    )
+
+    # Make sure this prescription belongs
+    # to the logged-in patient
+    if (
+        prescription.patient
+        and prescription.patient.p_email
+        != request.user.email
+    ):
+        return redirect(
+            'patient_dashboard'
+        )
+
+    return render(
+        request,
+        'view_prescription.html',
+        {
+            'prescription': prescription,
+            'appointment': prescription.patient,
         }
     )

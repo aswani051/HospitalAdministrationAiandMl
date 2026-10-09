@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -163,13 +162,80 @@
             font-weight: bold;
         }
 
+        /* Status */
+
+        .status {
+            display: inline-block;
+
+            margin-top: 10px;
+            margin-left: 6px;
+
+            padding: 6px 12px;
+
+            border-radius: 20px;
+
+            background: #fff3cd;
+            color: #856404;
+
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Status Buttons */
+
+        .status-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            margin-top: 15px;
+        }
+
+        .status-btn {
+            display: inline-block;
+
+            padding: 8px 14px;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .confirm-btn {
+            background: #198754;
+        }
+
+        .confirm-btn:hover {
+            background: #157347;
+        }
+
+        .complete-btn {
+            background: #0d6efd;
+        }
+
+        .complete-btn:hover {
+            background: #0b5ed7;
+        }
+
+        .cancel-btn {
+            background: #dc3545;
+        }
+
+        .cancel-btn:hover {
+            background: #bb2d3b;
+        }
+
         /* Prescription Button */
 
         .prescription-btn {
             display: inline-block;
 
             margin-top: 12px;
-            margin-left: 8px;
 
             padding: 8px 14px;
 
@@ -383,6 +449,45 @@
                             </span>
 
 
+                            <!-- Appointment Status -->
+
+                            <span class="status">
+
+                                ● {{ appointment.status|default:"Pending" }}
+
+                            </span>
+
+
+                            <!-- Status Buttons -->
+
+                            <div class="status-buttons">
+
+                                <a
+                                    href="{% url 'update_appointment_status' appointment.id 'Confirmed' %}"
+                                    class="status-btn confirm-btn"
+                                >
+                                    Confirm
+                                </a>
+
+
+                                <a
+                                    href="{% url 'update_appointment_status' appointment.id 'Completed' %}"
+                                    class="status-btn complete-btn"
+                                >
+                                    Complete
+                                </a>
+
+
+                                <a
+                                    href="{% url 'update_appointment_status' appointment.id 'Cancelled' %}"
+                                    class="status-btn cancel-btn"
+                                >
+                                    Cancel
+                                </a>
+
+                            </div>
+
+
                             <!-- Prescription -->
 
                             {% if appointment.prescriptions.exists %}
@@ -473,4 +578,3 @@
 </body>
 
 </html>
-```

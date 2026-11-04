@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -88,6 +89,26 @@
             color: #0d6efd;
             text-decoration: none;
         }
+        .home-icon-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 55px;
+            height: 55px;
+            z-index: 99999;
+            display: block;
+            transition: transform 0.2s ease;
+        }
+
+        .home-icon-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .home-icon-btn:hover {
+            transform: scale(1.1);
+        }
 
     </style>
 
@@ -98,7 +119,9 @@
     <div class="login-box">
 
         <div class="icon">
-            
+            <a href="{% url 'home' %}" class="home-icon-btn">
+             <img src="{% static 'images/home-icon.png' %}" alt="Home">
+        </a>
         </div>
 
         <h1>Doctor Login</h1>

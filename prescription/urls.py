@@ -1,3 +1,4 @@
+
 from django.urls import path
 
 from . import views
@@ -29,6 +30,19 @@ urlpatterns = [
         'delete/<int:prescription_id>/',
         views.delete_prescription,
         name='delete_prescription'
+    ),
+
+    # Pharmacy Billing
+    path(
+        'billing/create/<int:prescription_id>/',
+        views.create_pharmacy_bill,
+        name='create_pharmacy_bill'
+    ),
+
+    path(
+        'billing/<int:bill_id>/',
+        views.pharmacy_bill_detail,
+        name='pharmacy_bill_detail'
     ),
 
     # View prescription

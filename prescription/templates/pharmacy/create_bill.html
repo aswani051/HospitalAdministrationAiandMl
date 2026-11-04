@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Pharmacy Bill | Aswani Hospital</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #263449;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .header, .panel {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 18px #1831530d;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: #145da0;
+            font-size: 26px;
+        }
+
+        .muted {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 12px;
+            border-bottom: 1px solid #e8edf3;
+        }
+
+        th {
+            background: #f0f5fa;
+            font-size: 13px;
+        }
+
+        .quantity {
+            width: 85px;
+            padding: 9px;
+            border: 1px solid #ccd6e2;
+            border-radius: 7px;
+        }
+
+        .price {
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #1769aa;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background: #10558c;
+        }
+
+        .back {
+            background: #e9eef5;
+            color: #263449;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            background: #fff1f0;
+            color: #a52a2a;
+            margin-bottom: 16px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>Aswani Hospital</h1>
+        <p class="muted">Pharmacy Billing System</p>
+
+        <h2>Generate Medicine Bill</h2>
+
+        <p>
+            <strong>Patient:</strong>
+            {% if prescription.patient %}
+                {{ prescription.patient.p_name }}
+            {% else %}
+                {{ prescription.patient_name|default:"Patient" }}
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Prescription ID:</strong>
+            {{ prescription.id }}
+        </p>
+    </div>
+
+    <div class="panel">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Duration</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for row in medicine_rows %}
+                        <tr>
+                            <td>{{ row.prescribed.medicine_name }}</td>
+                            <td>{{ row.prescribed.dosage }}</td>
+                            <td>{{ row.prescribed.frequency }}</td>
+                            <td>{{ row.prescribed.duration }}</td>
+
+                            <td class="price">
+                                {% if row.price %}
+                                    ₹{{ row.price.unit_price }}
+                                {% else %}
+                                    <span style="color:#c0392b;">
+                                        Price not added
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <input
+                                    class="quantity"
+                                    type="number"
+                                    name="quantity_{{ row.prescribed.id }}"
+                                    min="1"
+                                    max="10000"
+                                    value="1"
+                                    required
+                                    {% if not row.price %}disabled{% endif %}
+                                >
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                No medicines found in this prescription.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="actions">
+                <button
+                    class="button"
+                    type="submit"
+                    {% if not medicine_rows %}disabled{% endif %}
+                >
+                    Generate Bill
+                </button>
+
+                <a
+                    class="button back"
+                    href="{% url 'pharmacist_dashboard' %}"
+                >
+                    Back to Dashboard
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+</body>
+</html>

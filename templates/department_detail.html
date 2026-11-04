@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ department.name }} | Aswani Hospital</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b1625;
+            color: #ffffff;
+        }
+
+        header {
+            padding: 22px 8%;
+            background: #122236;
+            border-bottom: 1px solid #24374d;
+        }
+
+        header a {
+            color: #22a5ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 70px auto;
+            padding: 25px;
+        }
+
+        .department-box {
+            background: #132438;
+            border: 1px solid #263d55;
+            border-radius: 22px;
+            padding: 45px;
+        }
+
+        .icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: #078cff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 18px;
+        }
+
+        p, li {
+            color: #c6d7e9;
+            font-size: 17px;
+            line-height: 1.8;
+        }
+
+        h2 {
+            margin-top: 35px;
+        }
+
+        ul {
+            padding-left: 22px;
+        }
+
+        .book-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 14px 25px;
+            background: #078cff;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .book-btn:hover {
+            background: #0074d9;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                margin: 30px auto;
+            }
+
+            .department-box {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <a href="/">← Aswani Hospital</a>
+</header>
+
+<main>
+    <section class="department-box">
+
+        <div class="icon">✚</div>
+
+        <h1>{{ department.name }}</h1>
+
+        <p>{{ department.description }}</p>
+
+        <h2>Our Services</h2>
+
+        <ul>
+            {% for service in department.services %}
+                <li>{{ service }}</li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'booking' %}" class="book-btn">
+            Book an Appointment 
+        </a>
+
+    </section>
+</main>
+
+</body>
+</html>

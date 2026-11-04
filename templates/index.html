@@ -24,7 +24,7 @@
         <div class="hero-content">
 
             <span class="hero-tag">
-                ★ Trusted Healthcare Since 1985
+                ★ Trusted Healthcare Since 2016
             </span>
 
             <h1>
@@ -40,11 +40,9 @@
 
             <div class="hero-buttons">
 
-                <a href="#doctors" class="btn-primary">
-                    Find a Doctor
-                </a>
 
-                <a href="#appointment" class="btn-secondary">
+
+                <a href="{% url 'register' %}" class="btn-secondary">
                     Book Appointment
                 </a>
 
@@ -106,9 +104,9 @@
 
         <div class="stat-box">
             <i class="fa-solid fa-award"></i>
-            <h2 class="counter" data-target="40">0</h2>
+            <h2 class="counter" data-target="10">0</h2>
             <h4>Years Experience</h4>
-            <p>Serving the community since 1985.</p>
+            <p>Serving the community since 2016.</p>
         </div>
 
     </div>
@@ -161,10 +159,6 @@ counters.forEach(counter => {
 
             <img src="{% static 'images/about.jpg' %}" alt="About Hospital">
 
-            <div class="experience-card">
-                <h2>40+</h2>
-                <p>Years of Excellence</p>
-            </div>
 
         </div>
 
@@ -233,12 +227,6 @@ counters.forEach(counter => {
 
             </div>
 
-            <a href="#" class="about-btn">
-
-                Learn More
-
-            </a>
-
         </div>
 
     </div>
@@ -269,42 +257,52 @@ counters.forEach(counter => {
             <i class="fa-solid fa-heart-pulse"></i>
             <h3>Cardiology</h3>
             <p>Advanced heart care with modern diagnostic and treatment facilities.</p>
-            <a href="#">Read More →</a>
+        <a href="/department/cardiology/" class="read-more">
+            Read More →
+        </a>
         </div>
 
         <div class="department-card">
             <i class="fa-solid fa-brain"></i>
             <h3>Neurology</h3>
             <p>Comprehensive care for brain, spine, and nervous system disorders.</p>
-            <a href="#">Read More →</a>
+            <a href="/department/neurology/" class="read-more">
+                Read More →
+            </a>
         </div>
 
         <div class="department-card">
             <i class="fa-solid fa-bone"></i>
             <h3>Orthopedics</h3>
             <p>Expert treatment for bones, joints, fractures, and sports injuries.</p>
-            <a href="#">Read More →</a>
+            <a href="/department/orthopedics/" class="read-more">
+                Read More →
+            </a>
         </div>
 
         <div class="department-card">
             <i class="fa-solid fa-eye"></i>
             <h3>Ophthalmology</h3>
             <p>Complete eye care including diagnosis, surgery, and vision correction.</p>
-            <a href="#">Read More →</a>
+            <a href="/department/ophthalmology/" class="read-more">
+                Read More →
+            </a>
         </div>
 
         <div class="department-card">
             <i class="fa-solid fa-baby"></i>
             <h3>Pediatrics</h3>
             <p>Specialized healthcare services for infants, children, and adolescents.</p>
-            <a href="#">Read More →</a>
+           <a href="/department/pediatrics/" class="read-more">
+            Read More →
+            </a>
         </div>
 
         <div class="department-card">
             <i class="fa-solid fa-stethoscope"></i>
             <h3>General Medicine</h3>
             <p>Comprehensive diagnosis and treatment for all general health concerns.</p>
-            <a href="#">Read More →</a>
+            
         </div>
 
     </div>
@@ -345,9 +343,7 @@ counters.forEach(counter => {
                     15+ years of experience in heart care and cardiac surgery.
                 </p>
 
-                <a href="#appointment" class="doctor-btn">
-                    Book Appointment
-                </a>
+
 
             </div>
 
@@ -367,9 +363,6 @@ counters.forEach(counter => {
                     Specialist in neurological disorders and brain surgery.
                 </p>
 
-                <a href="#appointment" class="doctor-btn">
-                    Book Appointment
-                </a>
 
             </div>
 
@@ -389,10 +382,6 @@ counters.forEach(counter => {
                     Expert in joint replacement and sports injury treatment.
                 </p>
 
-                <a href="#appointment" class="doctor-btn">
-                    Book Appointment
-                </a>
-
             </div>
 
         </div>
@@ -405,15 +394,12 @@ counters.forEach(counter => {
 
                 <h3>Dr. Mahi George</h3>
 
-                <span>Pediatrician</span>
+                <span>General Physician</span>
 
                 <p>
-                    Dedicated to children's health and family-centered care.
+                    Providing expert care for common illnesses, preventive health checkups, and chronic conditions.
                 </p>
 
-                <a href="#appointment" class="doctor-btn">
-                    Book Appointment
-                </a>
 
             </div>
 

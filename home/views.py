@@ -6,11 +6,11 @@ from django.contrib import messages
 
 from .forms import bookingform, PrescriptionForm
 from .models import Department, Doctor, booking as Booking
-
+from django.http import Http404
 from prescription.models import Prescription
 from prescription.gemini_service import patient_assistant
-
-
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 # =========================================================
 # HOME
 # =========================================================
@@ -442,3 +442,82 @@ def register(request):
         request,
         'register.html'
     )
+def department_detail(request, department_slug):
+
+    departments = {
+        'cardiology': {
+            'name': 'Cardiology',
+            'description': 'Advanced heart care with modern diagnostic and treatment facilities.',
+            'services': [
+                'Heart health consultation',
+                'ECG and cardiac evaluation',
+                'Heart disease diagnosis',
+                'Cardiac follow-up care',
+            ],
+        },
+        'neurology': {
+            'name': 'Neurology',
+            'description': 'Comprehensive care for brain, spine, and nervous system disorders.',
+            'services': [
+                'Neurological consultation',
+                'Headache assessment',
+                'Nerve disorder evaluation',
+                'Brain and spine care',
+            ],
+        },
+        'orthopedics': {
+            'name': 'Orthopedics',
+            'description': 'Expert treatment for bones, joints, fractures, and sports injuries.',
+            'services': [
+                'Bone and joint consultation',
+                'Fracture evaluation',
+                'Sports injury care',
+                'Joint pain assessment',
+            ],
+        },
+        'ophthalmology': {
+            'name': 'Ophthalmology',
+            'description': 'Complete eye care including diagnosis, surgery, and vision correction.',
+            'services': [
+                'Eye examinations',
+                'Vision assessment',
+                'Eye disease evaluation',
+                'Eye treatment consultation',
+            ],
+        },
+        'pediatrics': {
+            'name': 'Pediatrics',
+            'description': 'Specialized healthcare services for infants, children, and adolescents.',
+            'services': [
+                'Child health checkups',
+                'Growth and development monitoring',
+                'Childhood illness care',
+                'Vaccination guidance',
+            ],
+        },
+        'general-medicine': {
+            'name': 'General Medicine',
+            'description': 'Comprehensive diagnosis and treatment for general health concerns.',
+            'services': [
+                'General health consultations',
+                'Fever and infection assessment',
+                'Routine health checkups',
+                'Chronic condition management',
+            ],
+        },
+    }
+
+    department = departments.get(department_slug)
+
+    if not department:
+        raise Http404("Department not found")
+
+    return render(
+        request,
+        'department_detail.html',
+        {'department': department}
+    )
+
+def user_logout(request):
+    logout(request)
+    return redirect('home')

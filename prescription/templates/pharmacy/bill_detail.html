@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Bill | Aswani Hospital</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .bill {
+            max-width: 800px;
+            margin: auto;
+            padding: 35px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+            color: #2563eb;
+        }
+
+        .details {
+            margin-bottom: 25px;
+            line-height: 1.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #eff6ff;
+        }
+
+        .total {
+            text-align: right;
+            font-size: 22px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 7px;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .print {
+            background: #2563eb;
+            color: white;
+        }
+
+        .back {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .bill {
+                max-width: none;
+                box-shadow: none;
+                padding: 10px;
+            }
+
+            .actions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .bill {
+                padding: 18px;
+                overflow-x: auto;
+            }
+
+            th, td {
+                padding: 9px 5px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bill">
+        <div class="header">
+            <h1>Aswani Hospital</h1>
+            <p>Pharmacy Billing Receipt</p>
+        </div>
+
+        <div class="details">
+            <strong>Bill Number:</strong> {{ bill.id }}<br>
+            <strong>Patient Name:</strong>
+            {% if bill.prescription.patient %}
+                {{ bill.prescription.patient.p_name }}
+            {% else %}
+                {{ bill.prescription.patient_name|default:"N/A" }}
+            {% endif %}
+            <br>
+            <strong>Prescription ID:</strong> {{ bill.prescription.id }}<br>
+            <strong>Date:</strong> {{ bill.created_at|date:"d M Y, h:i A" }}
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Medicine</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in bill.items.all %}
+                <tr>
+                    <td>{{ item.medicine.medicine_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.unit_price|floatformat:2 }}</td>
+                    <td>₹{{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No medicines found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total">
+            Grand Total: ₹{{ bill.grand_total|floatformat:2 }}
+        </div>
+
+        <p style="text-align:center;">
+            Thank you for choosing Aswani Hospital.
+        </p>
+
+        <div class="actions">
+            <button class="btn print" onclick="window.print()">
+                Print Bill
+            </button>
+
+            <a class="btn back" href="{% url 'pharmacist_dashboard' %}">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>

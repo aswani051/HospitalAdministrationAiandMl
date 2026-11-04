@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from django.contrib.auth import views as auth_views
-
+from django.urls import path, include
 
 urlpatterns = [
 
@@ -101,6 +101,16 @@ urlpatterns = [
     'appointment-status/<int:booking_id>/<str:status>/',
     views.update_appointment_status,
     name='update_appointment_status'
+    ),
+    path(
+    'department/<slug:department_slug>/',
+    views.department_detail,
+    name='department_detail'
+    ),
+    path(
+        'logout/',
+        views.user_logout,
+        name='logout'
     ),
 ] + static(
     settings.MEDIA_URL,

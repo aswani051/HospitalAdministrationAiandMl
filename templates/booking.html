@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Book an Appointment{% endblock %}
+{% block title %}Book an Appointment - Aswani Hospital{% endblock %}
 
 {% block content %}
 
 <section class="booking-page">
 
-```
 <div class="booking-container">
 
     <!-- Left Side -->
@@ -24,7 +23,7 @@
         <p>
             Take the first step towards better healthcare.
             Schedule an appointment with our experienced doctors
-            at NovaCare Hospital.
+            at Aswani Hospital.
         </p>
 
         <div class="booking-features">
@@ -83,6 +82,15 @@
 
         </div>
 
+        {% if recommended_dept %}
+        <div class="alert alert-info d-flex align-items-center mb-3" style="border-radius: 12px; background: #e8f1fd; border: 1px solid #bfdbfe; color: #1e40af; padding: 14px 18px;">
+            <i class="fa-solid fa-wand-magic-sparkles me-2" style="font-size: 20px;"></i>
+            <div>
+                <strong>AI Department Recommendation:</strong>
+                Referred to <strong>{{ recommended_dept }}</strong>. We have automatically selected an available specialist doctor for you below.
+            </div>
+        </div>
+        {% endif %}
 
         <form method="POST">
 
@@ -116,7 +124,6 @@
     </div>
 
 </div>
-```
 
 </section>
 

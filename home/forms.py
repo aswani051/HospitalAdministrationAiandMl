@@ -12,7 +12,7 @@ class bookingform(forms.ModelForm):
 
         model = booking
 
-        fields = '__all__'
+        fields = ['p_name', 'p_email', 'p_phone', 'doc_name', 'booking_date']
 
         widgets = {
 

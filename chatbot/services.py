@@ -1,63 +1,77 @@
-import time
-
-from google import genai
+import logging
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
 
-client = genai.Client(
-    api_key=settings.GEMINI_API_KEY
-)
+# Initialize Gemini client safely
+client = None
+if getattr(settings, "GEMINI_API_KEY", None):
+    try:
+        from google import genai
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    except Exception as e:
+        logger.warning("Could not initialize Google GenAI Client: %s", e)
+
+MODEL_NAME = "gemini-2.5-flash-lite"
 
 
 def generate_chat_response(user_message):
+    """
+    Generates conversational response for general hospital questions.
+    Falls back gracefully if API key is not configured or network issues arise.
+    """
+    if not client:
+        return (
+            "👋 Welcome to Aswani Hospital! I am your AI Patient Assistant. "
+            "You can describe your symptoms, and I will recommend the right hospital "
+            "department (General Medicine, Orthopaedics, Cardiology, Dermatology, Neurology, "
+            "ENT, Paediatrics, or Gynaecology) and help you book an appointment with our specialist doctors."
+        )
 
     prompt = f"""
-You are the AI Patient Assistant for NovaCare Hospital.
+You are the AI Patient Assistant for Aswani Hospital.
 
-Your role is to help patients with:
+Your responsibilities:
+- Explain hospital departments.
+- Provide doctor and department information.
+- Guide patients about appointments.
+- Answer general hospital questions.
+- Provide basic symptom-based department guidance.
 
-- Hospital departments
-- Doctors
-- Appointment guidance
-- General hospital information
-- Basic symptom-based department guidance
-
-Important safety rules:
-
-- Do not diagnose diseases.
-- Do not prescribe medicines.
-- Do not provide medicine dosage.
-- Do not replace a doctor.
-- If the patient describes a possible emergency,
-  advise them to seek immediate medical attention.
+Safety rules:
+- Never diagnose diseases.
+- Never prescribe medicines or dosages.
+- Never replace professional medical advice.
+- For emergencies, advise immediate medical attention.
+- Do not invent hospital information.
 
 Patient message:
-
 {user_message}
 
-Give a simple, friendly and helpful response.
+Provide a simple, friendly and helpful response.
 """
 
-    for attempt in range(3):
+    try:
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt
+        )
 
-        try:
+        if response and response.text:
+            return response.text.strip()
 
-            response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=prompt
-            )
+        logger.warning("Gemini returned an empty response.")
+        return "I'm here to assist you with Aswani Hospital services. How can I help you today?"
 
-            return response.text
+    except Exception as e:
+        error_code = getattr(e, "code", None)
+        error_message = str(e).upper()
+        logger.exception("Gemini API request failed. Code: %s", error_code)
 
-        except Exception as e:
+        if error_code == 429 or "429" in error_message:
+            return "Our AI assistant is currently receiving high demand. Please try again in a few moments."
 
-            print(f"Gemini Error (Attempt {attempt + 1}):", e)
-
-            if attempt < 2:
-                time.sleep(2)
-
-            else:
-                return (
-                    "Sorry, the AI assistant is temporarily busy. "
-                    "Please try again in a moment."
-                )
+        return (
+            "Welcome to Aswani Hospital. You can use our Symptom Checker to find the right department "
+            "or contact our helpdesk at +91 98765 43210 for appointment assistance."
+        )

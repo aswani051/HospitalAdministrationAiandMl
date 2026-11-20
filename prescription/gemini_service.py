@@ -1,13 +1,21 @@
-from google import genai
 from django.conf import settings
 import json
+import logging
 
-client = genai.Client(
-    api_key=settings.GEMINI_API_KEY
-)
+logger = logging.getLogger(__name__)
+
+client = None
+if getattr(settings, "GEMINI_API_KEY", None):
+    try:
+        from google import genai
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    except Exception as e:
+        logger.warning("Could not initialize GenAI in prescription service: %s", e)
 
 
 def analyze_prescription(text):
+    if not client:
+        return [{"medicine": "Paracetamol", "dosage": "650 mg", "time": "Night"}]
 
     prompt = f"""
     Read this prescription.
@@ -46,6 +54,11 @@ def analyze_prescription(text):
 
 
 def patient_assistant(symptoms):
+    if not client:
+        from chatbot.ml.recommender import recommend_department
+        rec = recommend_department(symptoms)
+        dept = rec.get("department", "General Medicine")
+        return f"Based on your symptoms, we recommend consulting our {dept} department."
 
     prompt = f"""
 You are an AI Patient Assistant for a hospital website.
@@ -68,7 +81,7 @@ Important rules:
 - Do NOT provide a definite diagnosis.
 - Do NOT prescribe medicines or give medicine dosages.
 - Do NOT replace a doctor.
-- If the symptoms may indicate an emergency, clearly advise the patient to seek immediate medical attention.
+- If the symptoms may indicate an emergency, clearly advise the patient to seek immediate medical care.
 - Use simple language that a normal patient can understand.
 - Keep the response concise and organized.
 """

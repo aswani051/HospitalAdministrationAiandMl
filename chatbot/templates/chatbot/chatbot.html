@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Symptom Assistant & Department Recommender - Aswani Hospital{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-recommender-section {
+        padding: 50px 20px 80px;
+        background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+        min-height: 80vh;
+    }
+    .ai-container {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+    .ai-hero-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #e0edff;
+        color: #1854d9;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 6px 16px;
+        border-radius: 30px;
+        margin-bottom: 15px;
+    }
+    .ai-hero-header h1 {
+        font-size: 34px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 12px;
+    }
+    .ai-hero-header h1 span {
+        color: #1854d9;
+    }
+    .ai-hero-header p {
+        color: #64748b;
+        font-size: 16px;
+        max-width: 650px;
+        margin: 0 auto;
+    }
+    .ai-card-wrapper {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e2e8f0;
+        padding: 35px;
+    }
+    .input-label {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .symptom-textarea {
+        width: 100%;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 15px;
+        resize: vertical;
+        min-height: 120px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+    }
+    .symptom-textarea:focus {
+        border-color: #1854d9;
+        box-shadow: 0 0 0 4px rgba(24, 84, 217, 0.12);
+    }
+    .sample-chips-label {
+        font-size: 13px;
+        color: #64748b;
+        margin: 15px 0 8px;
+        font-weight: 500;
+    }
+    .sample-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 25px;
+    }
+    .sample-chip {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 13px;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .sample-chip:hover {
+        background: #1854d9;
+        color: #ffffff;
+        border-color: #1854d9;
+    }
+    .submit-btn-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    .btn-recommend {
+        background: #1854d9;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 15px;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 28px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn-recommend:hover {
+        background: #1142b3;
+    }
+    .btn-recommend:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+    .btn-clear {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .btn-clear:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+    /* Loading Spinner */
+    .loading-box {
+        display: none;
+        text-align: center;
+        padding: 40px 20px;
+    }
+    .spinner-custom {
+        width: 44px;
+        height: 44px;
+        border: 4px solid #e2e8f0;
+        border-top-color: #1854d9;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        margin: 0 auto 15px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    /* Recommendation Result Box */
+    .recommendation-result {
+        display: none;
+        margin-top: 35px;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 35px;
+    }
+    .rec-card {
+        background: #f8fafc;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 16px;
+        padding: 28px;
+    }
+    .rec-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .rec-department-title {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .rec-dept-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #1854d9;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .rec-dept-text h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 4px;
+    }
+    .rec-dept-text span {
+        font-size: 13px;
+        color: #1854d9;
+        font-weight: 600;
+    }
+    .confidence-badge {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .rec-desc {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    .reasons-list {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 16px 20px;
+        margin-bottom: 25px;
+    }
+    .reasons-list h5 {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+    .reasons-list ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #334155;
+        font-size: 14px;
+    }
+    .reasons-list li {
+        margin-bottom: 5px;
+    }
+    .rec-action-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #cbd5e1;
+        padding: 18px 24px;
+    }
+    .btn-book-dept {
+        background: #1854d9;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        padding: 12px 26px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .btn-book-dept:hover {
+        background: #0f3cb3;
+        color: #ffffff;
+    }
+    /* Emergency Alert Box */
+    .emergency-alert {
+        display: none;
+        background: #fef2f2;
+        border: 1.5px solid #fecaca;
+        border-radius: 14px;
+        padding: 18px 20px;
+        color: #991b1b;
+        margin-bottom: 25px;
+    }
+    .emergency-alert h4 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .emergency-alert p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    /* Disclaimer */
+    .disclaimer-note {
+        margin-top: 25px;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.5;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 12px 16px;
+        border-left: 3px solid #94a3b8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="ai-recommender-section">
+    <div class="ai-container">
+
+        <div class="ai-hero-header">
+            <span class="ai-badge">
+                <i class="fa-solid fa-brain"></i> Powered by Scikit-Learn Machine Learning
+            </span>
+            <h1>AI Hospital <span>Department Recommender</span></h1>
+            <p>
+                Describe your symptoms in natural language. Our custom trained Machine Learning model
+                will analyze your health concerns and direct you to the most suitable hospital department.
+            </p>
+        </div>
+
+        <div class="ai-card-wrapper">
+            <div class="input-label">
+                <span><i class="fa-solid fa-notes-medical text-primary me-2"></i> Describe Patient Symptoms</span>
+                <small class="text-muted">Enter how you feel in your own words</small>
+            </div>
+
+            <textarea
+                id="page-symptom-input"
+                class="symptom-textarea"
+                placeholder="Example: I've been experiencing severe pain and swelling in my right knee after playing football, and I can't put weight on my leg..."
+            ></textarea>
+
+            <div class="sample-chips-label">Or click a sample symptom query:</div>
+            <div class="sample-chips">
+                <span class="sample-chip" data-query="Severe knee joint pain and swelling, unable to walk properly">🦴 Knee pain & swelling</span>
+                <span class="sample-chip" data-query="Chest tightness, heart racing palpitations and shortness of breath">❤️ Chest pressure & palpitations</span>
+                <span class="sample-chip" data-query="Severe throbbing headache on one side with nausea and light sensitivity">🧠 Throbbing migraine headache</span>
+                <span class="sample-chip" data-query="Sharp earache, reduced hearing and severe sore throat">👂 Earache & throat pain</span>
+                <span class="sample-chip" data-query="Red itchy rash spreading on arms with small burning blisters">🩺 Itchy skin rash</span>
+                <span class="sample-chip" data-query="Infant running high fever, crying continuously and refusing milk">👶 Infant high fever & crying</span>
+                <span class="sample-chip" data-query="Irregular menstrual cycle, severe pelvic cramps and heavy bleeding">🌸 Irregular periods & pelvic pain</span>
+                <span class="sample-chip" data-query="High fever with chills, body aches, exhaustion and weakness">🌡️ Viral fever & body ache</span>
+            </div>
+
+            <div class="submit-btn-row">
+                <button id="page-btn-recommend" class="btn-recommend">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Symptoms & Recommend
+                </button>
+                <button id="page-btn-clear" class="btn-clear">Clear</button>
+            </div>
+
+            <!-- Loading Box -->
+            <div id="page-loading" class="loading-box">
+                <div class="spinner-custom"></div>
+                <h5 style="color: #0f172a; margin-bottom: 5px;">Analyzing Symptoms with AI...</h5>
+                <p style="color: #64748b; font-size: 14px;">Extracting clinical features and vectorizing against hospital departments...</p>
+            </div>
+
+            <!-- Emergency Warning Banner -->
+            <div id="page-emergency-alert" class="emergency-alert mt-4">
+                <h4><i class="fa-solid fa-triangle-exclamation"></i> Medical Emergency Advisory</h4>
+                <p id="page-emergency-text"></p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="page-result" class="recommendation-result">
+                <div class="rec-card">
+                    <div class="rec-top">
+                        <div class="rec-department-title">
+                            <div class="rec-dept-icon" id="page-dept-icon">
+                                <i class="fa-solid fa-stethoscope"></i>
+                            </div>
+                            <div class="rec-dept-text">
+                                <span id="page-dept-label">RECOMMENDED DEPARTMENT</span>
+                                <h3 id="page-dept-name">Department Name</h3>
+                            </div>
+                        </div>
+                        <div class="confidence-badge" id="page-confidence-badge">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            <span id="page-confidence-val">90% Match</span>
+                        </div>
+                    </div>
+
+                    <p class="rec-desc" id="page-dept-desc"></p>
+
+                    <div class="reasons-list" id="page-reasons-box">
+                        <h5>Common Care Scope for this Department:</h5>
+                        <ul id="page-reasons-list"></ul>
+                    </div>
+
+                    <div class="rec-action-bar">
+                        <div>
+                            <strong style="color: #0f172a; display: block; font-size: 15px;">Ready to consult a specialist?</strong>
+                            <span style="color: #64748b; font-size: 13px;" id="page-doctor-summary">Schedule your appointment with our team.</span>
+                        </div>
+                        <a href="/#register" id="page-book-btn" class="btn-book-dept">
+                            <i class="fa-solid fa-calendar-check"></i> Book Appointment with Department
+                        </a>
+                    </div>
+
+                    <div class="disclaimer-note" id="page-disclaimer-text">
+                        Medical Disclaimer: This recommendation is generated by an automated AI model for informational and hospital navigation purposes only. It is not a clinical diagnosis, medical prescription, or treatment plan. If you are experiencing an emergency, please visit the hospital emergency department immediately.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const symptomInput = document.getElementById("page-symptom-input");
+    const recommendBtn = document.getElementById("page-btn-recommend");
+    const clearBtn = document.getElementById("page-btn-clear");
+    const loadingBox = document.getElementById("page-loading");
+    const resultBox = document.getElementById("page-result");
+    const emergencyBox = document.getElementById("page-emergency-alert");
+    const emergencyText = document.getElementById("page-emergency-text");
+    const chips = document.querySelectorAll(".sample-chip");
+
+    // Chips click handler
+    chips.forEach(chip => {
+        chip.addEventListener("click", function () {
+            symptomInput.value = this.getAttribute("data-query");
+            symptomInput.focus();
+        });
+    });
+
+    clearBtn.addEventListener("click", function () {
+        symptomInput.value = "";
+        resultBox.style.display = "none";
+        emergencyBox.style.display = "none";
+        loadingBox.style.display = "none";
+    });
+
+    async function executeRecommendation() {
+        const symptoms = symptomInput.value.trim();
+        if (!symptoms) {
+            alert("Please enter a description of your symptoms.");
+            symptomInput.focus();
+            return;
+        }
+
+        // Show loading state
+        loadingBox.style.display = "block";
+        resultBox.style.display = "none";
+        emergencyBox.style.display = "none";
+        recommendBtn.disabled = true;
+
+        try {
+            const response = await fetch("/chatbot/api/recommend/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify({ symptoms: symptoms })
+            });
+
+            const data = await response.json();
+            loadingBox.style.display = "none";
+            recommendBtn.disabled = false;
+
+            if (data.success) {
+                // Emergency warning
+                if (data.is_emergency && data.emergency_message) {
+                    emergencyText.textContent = data.emergency_message;
+                    emergencyBox.style.display = "block";
+                }
+
+                // Populate Result Card
+                document.getElementById("page-dept-name").textContent = data.department;
+                document.getElementById("page-confidence-val").textContent = data.confidence_percentage + "% Match Confidence";
+                document.getElementById("page-dept-desc").textContent = data.department_details.description || "";
+
+                // Reasons list
+                const reasonsList = document.getElementById("page-reasons-list");
+                reasonsList.innerHTML = "";
+                if (data.department_details.common_reasons && data.department_details.common_reasons.length) {
+                    data.department_details.common_reasons.forEach(r => {
+                        const li = document.createElement("li");
+                        li.textContent = r;
+                        reasonsList.appendChild(li);
+                    });
+                    document.getElementById("page-reasons-box").style.display = "block";
+                } else {
+                    document.getElementById("page-reasons-box").style.display = "none";
+                }
+
+                // Doctor summary
+                if (data.database && data.database.doctors && data.database.doctors.length) {
+                    const docNames = data.database.doctors.map(d => d.doc_name).join(", ");
+                    document.getElementById("page-doctor-summary").textContent = "Available Specialists: " + docNames;
+                } else {
+                    document.getElementById("page-doctor-summary").textContent = "Specialist doctors available for consultation.";
+                }
+
+                // Booking Button
+                // Booking Button
+                const bookBtn = document.getElementById("page-book-btn");
+
+                bookBtn.href = "/#register";
+
+                bookBtn.innerHTML =
+                    '<i class="fa-solid fa-calendar-check"></i> Book Appointment with ' + data.department;
+
+                // Disclaimer
+                if (data.safety_disclaimer) {
+                    document.getElementById("page-disclaimer-text").textContent = data.safety_disclaimer;
+                }
+
+                resultBox.style.display = "block";
+                resultBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            } else {
+                alert(data.error || "Unable to recommend department. Please try again.");
+            }
+        } catch (err) {
+            console.error("Recommendation Error:", err);
+            loadingBox.style.display = "none";
+            recommendBtn.disabled = false;
+            alert("Failed to connect to recommendation service. Please check your connection.");
+        }
+    }
+
+    recommendBtn.addEventListener("click", executeRecommendation);
+
+    symptomInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            executeRecommendation();
+        }
+    });
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith("csrftoken=")) {
+                return cookie.substring("csrftoken=".length);
+            }
+        }
+        return "";
+    }
+});
+</script>
+{% endblock %}

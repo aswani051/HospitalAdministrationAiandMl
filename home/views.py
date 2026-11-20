@@ -33,32 +33,49 @@ def about(request):
 
 @login_required(login_url='login')
 def booking(request):
+    recommended_dept = None
+    initial_data = {
+        'p_email': request.user.email if request.user.is_authenticated else ''
+    }
 
     if request.method == 'POST':
-
         form = bookingform(request.POST)
-
         if form.is_valid():
-
             patient = form.save()
-
             request.session['token_no'] = patient.token_no
-
             return redirect('patient_dashboard')
-
     else:
+        dept_id = request.GET.get('department_id')
+        dept_name = request.GET.get('dept')
+        doc_id = request.GET.get('doctor_id')
 
-        form = bookingform(
-            initial={
-                'p_email': request.user.email
-            }
-        )
+        target_doctor = None
+        if doc_id:
+            target_doctor = Doctor.objects.filter(id=doc_id).first()
+        elif dept_id:
+            dept_obj = Department.objects.filter(id=dept_id).first()
+            if dept_obj:
+                recommended_dept = dept_obj.name
+                target_doctor = Doctor.objects.filter(dep_name=dept_obj).first()
+        elif dept_name:
+            dept_obj = Department.objects.filter(name__icontains=dept_name).first()
+            if dept_obj:
+                recommended_dept = dept_obj.name
+                target_doctor = Doctor.objects.filter(dep_name=dept_obj).first()
+
+        if target_doctor:
+            initial_data['doc_name'] = target_doctor.id
+            if not recommended_dept and target_doctor.dep_name:
+                recommended_dept = target_doctor.dep_name.name
+
+        form = bookingform(initial=initial_data)
 
     return render(
         request,
         'booking.html',
         {
-            'form': form
+            'form': form,
+            'recommended_dept': recommended_dept
         }
     )
 
@@ -259,37 +276,7 @@ def profile(request):
 
 @login_required(login_url='login')
 def ai_patient_assistant(request):
-
-    response = None
-    symptoms = ""
-
-    if request.method == 'POST':
-
-        symptoms = request.POST.get(
-            'symptoms',
-            ''
-        ).strip()
-
-        if symptoms:
-
-            try:
-
-                response = patient_assistant(
-                    symptoms
-                )
-
-            except Exception as e:
-
-                response = f"AI Error: {str(e)}"
-
-    return render(
-        request,
-        'ai_patient_assistant.html',
-        {
-            'response': response,
-            'symptoms': symptoms,
-        }
-    )
+    return redirect('chatbot')
 
 
 # =========================================================
